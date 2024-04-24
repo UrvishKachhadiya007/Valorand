@@ -1,0 +1,49 @@
+using UnityEngine;
+
+public class ObjectController : MonoBehaviour
+{
+    private Rigidbody rb;
+    private Vector3 dragStartPosition;
+    private Vector3 dragEndPosition;
+    private bool isDragging = false;
+
+    void Start()
+    {
+        rb = GetComponent<Rigidbody>();
+    }
+
+    void Update()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            RaycastHit hit;
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+            if (Physics.Raycast(ray, out hit))
+            {
+                if (hit.collider.gameObject == gameObject)
+                {
+                    isDragging = true;
+                    dragStartPosition = hit.point;
+                }
+            }
+        }
+
+        if (Input.GetMouseButtonUp(0) && isDragging)
+        {
+            isDragging = false;
+            dragEndPosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
+            Vector3 dragDirection = (dragEndPosition - dragStartPosition).normalized;
+            float dragDistance = Vector3.Distance(dragEndPosition, dragStartPosition);
+            float throwForce = Mathf.Clamp(dragDistance, 0f, 10f); // Adjust this value as needed
+
+            rb.AddForce(dragDirection * throwForce, ForceMode.Impulse);
+        }
+
+        if (isDragging)
+        {
+            Vector3 currentMousePosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
+            rb.MovePosition(currentMousePosition);
+        }
+    }
+}
